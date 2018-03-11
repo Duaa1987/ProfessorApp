@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams,AlertController } from 'ionic-angul
 import { EventProvider } from '../../providers/event/event';
 import { EmailComposer } from '@ionic-native/email-composer';
 import { Camera, CameraOptions } from '@ionic-native/camera';
+import { HomeworkProvider } from '../../providers/homework/homework';
 
 
 /**
@@ -21,12 +22,17 @@ export class PhotoListPage {
   galleryType = 'regular';
   public photoList = [];
   currentImage = null;
+  public arrayImages =[];
   
-  constructor(private camera: Camera, private emailComposer: EmailComposer,    private alertCtrl: AlertController,  public navCtrl: NavController, public navParams: NavParams , public eventProvider: EventProvider) {
+  constructor(private camera: Camera, private emailComposer: EmailComposer,    private alertCtrl: AlertController,
+      public navCtrl: NavController, public navParams: NavParams , public eventProvider: EventProvider, public homeworks: HomeworkProvider) {
   }
 
   ionViewDidEnter(){
-    this.eventProvider.getPhotoList().on('value', snapshot => {
+    console.log('photo list')
+    let student_id = this.navParams.get('student_id')
+    console.log(student_id)
+    this.homeworks.getHomeWorks(student_id).on('value', snapshot => {
       this.photoList = [];
       snapshot.forEach( snap => {
         this.photoList.push({
@@ -37,16 +43,26 @@ export class PhotoListPage {
         console.log(this.photoList);
         return false
       });
+      console.log(this.photoList);
+      
     });
+
   }
 
 
-  //go to the Add Photo Page
-  goToAddPhoto(){
-    this.navCtrl.push('AddPhotoPage');
+  onArrayImages(imageSelected) {
+    let index = this.arrayImages.indexOf(imageSelected)
+    if(index > -1)
+    {
+      this.arrayImages.splice(index, 1)
+    } 
+    else
+    {
+      this.arrayImages.push(imageSelected)
+    }
   }
 
-  deletePhoto(index) {
+  deletePhoto(imageSelected) {
     let confirm = this.alertCtrl.create({
       title: "Sure you want to delete this photo? There is NO undo!",
       message: "",
@@ -61,7 +77,13 @@ export class PhotoListPage {
           text: "Yes",
           handler: () => {
             console.log("Agree clicked");
-            this.photoList.splice(index, 1);
+            this.arrayImages.forEach(()=>{
+              let index =this.photoList.indexOf(imageSelected)
+              if(index >-1)
+              {
+                this.photoList.splice(index,1)
+              }
+            })
           }
         }
       ]
@@ -69,6 +91,11 @@ export class PhotoListPage {
     confirm.present();
   }
 
+
+  //go to the Add Photo Page
+  goToAddPhoto(){
+    this.navCtrl.push('AddPhotoPage');
+  }
 
   captureImage() {
     const options: CameraOptions = {
@@ -86,13 +113,13 @@ export class PhotoListPage {
  
   sendEmail() {
     let email = {
-      to: 'duaa.alwad@gmail.com',
+      to: 'email.teamproject@gmail.com',
       cc: 'duaa.taani@yahoo.com',
       attachments: [
         this.currentImage
       ],
-      subject: 'Homework',
-      body: 'Hey , this is the hw',
+      subject: 'My Homework',
+      body: 'Hey , what do you thing about this image?',
       isHtml: true
     };
  
@@ -100,4 +127,3 @@ export class PhotoListPage {
   }
  
 }
-
